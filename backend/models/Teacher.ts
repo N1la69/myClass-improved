@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { UserSex } from "./enums";
+import { UserSex } from "./enums.ts";
 
 const TeacherSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true },

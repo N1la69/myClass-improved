@@ -3,12 +3,13 @@ import cors from "cors";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import TeacherRouter from "./routes/TeacherRoutes.ts";
+import StudentRouter from "./routes/StudentRoutes.ts";
 
 dotenv.config();
 
 const app = express();
 const MONGODB_URI = process.env.MONGODB_URI as string;
-//console.log("MongoDB URI:", MONGODB_URI);
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -16,6 +17,9 @@ app.use(bodyParser.json());
 app.get("/", (req, res) => {
   res.send("Server is running!");
 });
+
+app.use("/teachers", TeacherRouter);
+app.use("/students", StudentRouter);
 
 mongoose
   .connect(MONGODB_URI, {})

@@ -1,31 +1,38 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import FormModal from "@/components/FormModal";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import { role, teachersData } from "@/lib/data";
+import { role } from "@/lib/data";
 import Image from "next/image";
 import Link from "next/link";
 
 type Teacher = {
-  id: number;
-  teacherId: string;
+  id: string;
+  username: string;
   name: string;
+  surname: string;
   email?: string;
-  photo: string;
-  phone: string;
-  subjects: string[];
-  classes: string[];
+  phone?: string;
   address: string;
+  photo: string;
+  bloodType: string;
+  sex: "Male" | "Female" | "Other";
+  createdAt: Date;
+  subjects: string[];
+  lessons: string[];
+  classes: string[];
+  birthday: Date;
 };
 
 const columns = [
-  {
-    header: "Info",
-    accessor: "info",
-  },
+  { header: "Info", accessor: "info" },
   {
     header: "Teacher ID",
-    accessor: "teacherId",
+    accessor: "username",
     className: "hidden md:table-cell",
   },
   {
@@ -33,28 +40,48 @@ const columns = [
     accessor: "subjects",
     className: "hidden md:table-cell",
   },
-  {
-    header: "Classes",
-    accessor: "classes",
-    className: "hidden md:table-cell",
-  },
-  {
-    header: "Phone",
-    accessor: "phone",
-    className: "hidden lg:table-cell",
-  },
-  {
-    header: "Address",
-    accessor: "address",
-    className: "hidden lg:table-cell",
-  },
-  {
-    header: "Actions",
-    accessor: "action",
-  },
+  { header: "Classes", accessor: "classes", className: "hidden md:table-cell" },
+  { header: "Phone", accessor: "phone", className: "hidden lg:table-cell" },
+  { header: "Address", accessor: "address", className: "hidden lg:table-cell" },
+  { header: "Actions", accessor: "action" },
 ];
 
 const TeacherListPage = () => {
+  const searchParams = useSearchParams();
+  const page = searchParams.get("page") || "1";
+  const classId = searchParams.get("classId");
+
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    const fetchTeachers = async () => {
+      try {
+        setLoading(true);
+        let url = `http://localhost:5000/teachers?page=${page}&limit=10`;
+
+        if (classId) {
+          url = `http://localhost:5000/teachers/by-class?classId=${classId}&page=${page}&limit=10`;
+        }
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch teachers");
+        const data = await response.json();
+
+        setTeachers(data.data);
+        setTotalPages(data.pagination.totalPages);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTeachers();
+  }, [page, classId]);
+
   const renderRow = (item: Teacher) => (
     <tr
       key={item.id}
@@ -62,7 +89,7 @@ const TeacherListPage = () => {
     >
       <td className="flex items-center gap-4 p-4">
         <Image
-          src={item.photo}
+          src={item.photo || "/user.png"}
           alt=""
           width={40}
           height={40}
@@ -73,11 +100,11 @@ const TeacherListPage = () => {
           <p className="text-xs text-gray-500">{item?.email}</p>
         </div>
       </td>
-      <td className="hidden md:table-cell">{item.teacherId}</td>
-      <td className="hidden md:table-cell">{item.subjects.join(",")}</td>
-      <td className="hidden md:table-cell">{item.classes.join(",")}</td>
-      <td className="hidden md:table-cell">{item.phone}</td>
-      <td className="hidden md:table-cell">{item.address}</td>
+      <td className="hidden md:table-cell">{item.username}</td>
+      <td className="hidden md:table-cell">{item.subjects.join(", ")}</td>
+      <td className="hidden md:table-cell">{item.classes.join(", ")}</td>
+      <td className="hidden lg:table-cell">{item.phone || "N/A"}</td>
+      <td className="hidden lg:table-cell">{item.address}</td>
       <td>
         <div className="flex items-center gap-2">
           <Link href={`/list/teachers/${item.id}`}>
@@ -86,9 +113,6 @@ const TeacherListPage = () => {
             </button>
           </Link>
           {role === "admin" && (
-            // <button className="w-7 h-7 flex items-center justify-center rounded-full bg-lamaPurple">
-            //   <Image src="/delete.png" alt="" width={16} height={16} />
-            // </button>
             <FormModal table="teacher" type="delete" id={item.id} />
           )}
         </div>
@@ -100,7 +124,9 @@ const TeacherListPage = () => {
     <div className="bg-white p-4 rounded-md flex-1 m-4 mt-0">
       {/* TOP */}
       <div className="flex items-center justify-between">
-        <h1 className="hidden md:block text-lg font-semibold">All Teachers</h1>
+        <h1 className="hidden md:block text-lg font-semibold">
+          {classId ? "Class Teachers" : "All Teachers"}
+        </h1>
         <div className="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
           <TableSearch />
           <div className="flex items-center gap-4 self-end">
@@ -110,21 +136,22 @@ const TeacherListPage = () => {
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {role === "admin" && (
-              // <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
-              //   <Image src="/plus.png" alt="" width={14} height={14} />
-              // </button>
-              <FormModal table="teacher" type="create" />
-            )}
+            {role === "admin" && <FormModal table="teacher" type="create" />}
           </div>
         </div>
       </div>
 
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={teachersData} />
+      {loading ? (
+        <p className="text-center py-4">Loading...</p>
+      ) : error ? (
+        <p className="text-center text-red-500 py-4">{error}</p>
+      ) : (
+        <Table columns={columns} renderRow={renderRow} data={teachers} />
+      )}
 
       {/* PAGINATION */}
-      <Pagination />
+      <Pagination totalPages={totalPages} currentPage={Number(page)} />
     </div>
   );
 };
