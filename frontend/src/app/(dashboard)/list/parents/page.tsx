@@ -1,17 +1,24 @@
+"use client";
+
 import FormModal from "@/components/FormModal";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import { parentsData, role } from "@/lib/data";
+import { role } from "@/lib/data";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type Parent = {
-  id: number;
+  id: string;
+  username: string;
   name: string;
+  surname: string;
   email?: string;
-  students: string[];
   phone: string;
   address: string;
+  createdAt: Date;
+  students: string[];
 };
 
 const columns = [
@@ -41,6 +48,33 @@ const columns = [
 ];
 
 const ParentListPage = () => {
+  const searchParams = useSearchParams();
+  const page = searchParams.get("page") || "1";
+
+  const [parents, setParents] = useState<Parent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    const fetchParents = async () => {
+      try {
+        setLoading(true);
+        let url = `http://localhost:5000/parents?page=${page}&limit=10`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        setParents(data.data);
+        setTotalPages(data.pagination.totalPages);
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+  }, [page]);
+
   const renderRow = (item: Parent) => (
     <tr
       key={item.id}
@@ -88,10 +122,10 @@ const ParentListPage = () => {
       </div>
 
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={parentsData} />
+      <Table columns={columns} renderRow={renderRow} data={parents} />
 
       {/* PAGINATION */}
-      <Pagination />
+      <Pagination totalPages={totalPages} currentPage={Number(page)} />
     </div>
   );
 };
