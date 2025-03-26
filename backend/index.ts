@@ -6,6 +6,7 @@ import mongoose from "mongoose";
 import TeacherRouter from "./routes/TeacherRoutes.ts";
 import StudentRouter from "./routes/StudentRoutes.ts";
 import ParentRouter from "./routes/ParentRoutes.ts";
+import SubjectRouter from "./routes/SubjectRoutes.ts";
 
 dotenv.config();
 
@@ -22,6 +23,7 @@ app.get("/", (req, res) => {
 app.use("/teachers", TeacherRouter);
 app.use("/students", StudentRouter);
 app.use("/parents", ParentRouter);
+app.use("/subjects", SubjectRouter);
 
 mongoose
   .connect(MONGODB_URI, {})

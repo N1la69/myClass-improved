@@ -1,14 +1,19 @@
+"use client";
+
 import FormModal from "@/components/FormModal";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import { role, subjectsData } from "@/lib/data";
+import { role } from "@/lib/data";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type Subject = {
   id: number;
   name: string;
   teachers: string[];
+  lessons: string[];
 };
 
 const columns = [
@@ -28,6 +33,34 @@ const columns = [
 ];
 
 const SubjectListPage = () => {
+  const searchParams = useSearchParams();
+  const page = searchParams.get("page") || "1";
+
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    const fetchSubjects = async () => {
+      try {
+        setLoading(true);
+        let url = `http://localhost:5000/subjects?page=${page}&limit=10`;
+
+        const response = await fetch(url);
+        const data = await response.json();
+
+        setSubjects(data.data);
+        setTotalPages(data.pagination.totalPages);
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSubjects();
+  }, [page]);
+
   const renderRow = (item: Subject) => (
     <tr
       key={item.id}
@@ -68,10 +101,16 @@ const SubjectListPage = () => {
       </div>
 
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={subjectsData} />
+      {loading ? (
+        <p className="text-center py-4">Loading...</p>
+      ) : error ? (
+        <p className="text-center text-red-500 py-4">{error}</p>
+      ) : (
+        <Table columns={columns} renderRow={renderRow} data={subjects} />
+      )}
 
       {/* PAGINATION */}
-      <Pagination />
+      <Pagination totalPages={totalPages} currentPage={Number(page)} />
     </div>
   );
 };

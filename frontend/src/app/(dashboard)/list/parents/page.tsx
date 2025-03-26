@@ -73,6 +73,7 @@ const ParentListPage = () => {
         setLoading(false);
       }
     };
+    fetchParents();
   }, [page]);
 
   const renderRow = (item: Parent) => (
@@ -122,7 +123,13 @@ const ParentListPage = () => {
       </div>
 
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={parents} />
+      {loading ? (
+        <p className="text-center py-4">Loading...</p>
+      ) : error ? (
+        <p className="text-center text-red-500 py-4">{error}</p>
+      ) : (
+        <Table columns={columns} renderRow={renderRow} data={parents} />
+      )}
 
       {/* PAGINATION */}
       <Pagination totalPages={totalPages} currentPage={Number(page)} />
