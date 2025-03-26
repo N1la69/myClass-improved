@@ -64,17 +64,24 @@ const columns = [
 const StudentListPage = () => {
   const searchParams = useSearchParams();
   const page = searchParams.get("page") || "1";
+  const classId = searchParams.get("classId");
 
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
 
+  console.log(error);
+
   useEffect(() => {
     const fetchStudents = async () => {
       try {
         setLoading(true);
         let url = `http://localhost:5000/students?page=${page}&limit=10`;
+
+        if (classId) {
+          url = `http://localhost:5000/students/by-class?classId=${classId}&page=${page}&limit=10`;
+        }
 
         const response = await fetch(url);
         const data = await response.json();
@@ -89,7 +96,7 @@ const StudentListPage = () => {
     };
 
     fetchStudents();
-  }, [page]);
+  }, [page, classId]);
 
   const renderRow = (item: Student) => (
     <tr
@@ -98,19 +105,19 @@ const StudentListPage = () => {
     >
       <td className="flex items-center gap-4 p-4">
         <Image
-          src={item.photo}
-          alt=""
+          src={item.photo || "/user.png"}
+          alt="img"
           width={40}
           height={40}
           className="md:hidden xl:block w-10 h-10 rounded-full object-cover"
         />
         <div className="flex flex-col">
-          <h3 className="font-semibold">{item.name}</h3>
+          <h3 className="font-semibold">{item.username}</h3>
           <p className="text-xs text-gray-500">{item.classId}</p>
         </div>
       </td>
       <td className="hidden md:table-cell">{item.name}</td>
-      <td className="hidden md:table-cell">{item.gradeId}</td>
+      <td className="hidden md:table-cell">{item.classId}</td>
       <td className="hidden md:table-cell">{item.phone}</td>
       <td className="hidden md:table-cell">{item.address}</td>
       <td>
@@ -154,10 +161,14 @@ const StudentListPage = () => {
           </div>
         </div>
       </div>
-
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={students} />
-
+      {loading ? (
+        <p className="text-center py-4">Loading...</p>
+      ) : error ? (
+        <p className="text-center text-red-500 py-4">{error}</p>
+      ) : (
+        <Table columns={columns} renderRow={renderRow} data={students} />
+      )}
       {/* PAGINATION */}
       <Pagination totalPages={totalPages} currentPage={Number(page)} />
     </div>

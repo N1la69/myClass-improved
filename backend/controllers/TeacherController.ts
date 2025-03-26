@@ -59,7 +59,7 @@ export const getTeachersByClass = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Server Error",
+      message: "Server Error | Teacher Controller",
       error: (error as Error).message,
     });
   }

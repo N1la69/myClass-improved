@@ -36,3 +36,27 @@ export const getAllStudents = async (
     });
   }
 };
+
+export const getStudentsByClass = async (req: Request, res: Response) => {
+  try {
+    const { classId } = req.query;
+
+    if (!classId) {
+      return res
+        .status(400)
+        .json({ success: false, message: "classId is required" });
+    }
+
+    const students = await Student.find({ classes: classId }).populate(
+      "classes"
+    );
+
+    res.status(200).json({ success: true, data: students });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Server Error | Student Controller",
+      error: (error as Error).message,
+    });
+  }
+};
