@@ -68,6 +68,7 @@ const TeacherListPage = () => {
 
         const response = await fetch(url);
         if (!response.ok) throw new Error("Failed to fetch teachers");
+
         const data = await response.json();
 
         setTeachers(data.data);
