@@ -1,19 +1,21 @@
+"use client";
+
 import FormModal from "@/components/FormModal";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import { resultsData, role } from "@/lib/data";
+import { role } from "@/lib/data";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type Result = {
   id: number;
-  subject: string;
-  class: string;
-  teacher: string;
-  student: string;
-  type: "exam" | "assignment";
-  date: string;
   score: number;
+  examId: number;
+  assignmentId: number;
+  studentId: string;
+  subject: string;
 };
 
 const columns = [
@@ -52,17 +54,49 @@ const columns = [
 ];
 
 const ResultListPage = () => {
+  const searchParams = useSearchParams();
+  const page = searchParams.get("page") || "1";
+
+  const [results, setResults] = useState<Result[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        setLoading(true);
+        let url = `http://localhost:5000/results?page=${page}&limit=10`;
+
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error("Failed to fetch results");
+        }
+
+        const data = await response.json();
+
+        setResults(data.data);
+        setTotalPages(data.pagination.totalPages);
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchResults();
+  }, [page]);
+
   const renderRow = (item: Result) => (
     <tr
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
     >
       <td className="flex items-center gap-4 p-4">{item.subject}</td>
-      <td>{item.student}</td>
+      <td>{item.studentId}</td>
       <td className="hidden md:table-cell">{item.score}</td>
-      <td className="hidden md:table-cell">{item.teacher}</td>
-      <td className="hidden md:table-cell">{item.class}</td>
-      <td className="hidden md:table-cell">{item.date}</td>
+      <td className="hidden md:table-cell">{item.assignmentId}</td>
+      <td className="hidden md:table-cell">{item.examId}</td>
+      <td className="hidden md:table-cell">{item.score}</td>
       <td>
         <div className="flex items-center gap-2">
           {role === "admin" ||
@@ -100,10 +134,16 @@ const ResultListPage = () => {
       </div>
 
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={resultsData} />
+      {loading ? (
+        <p className="text-center py-4">Loading...</p>
+      ) : error ? (
+        <p className="text-center text-red-500 py-4">{error}</p>
+      ) : (
+        <Table columns={columns} renderRow={renderRow} data={results} />
+      )}
 
       {/* PAGINATION */}
-      <Pagination />
+      <Pagination totalPages={totalPages} currentPage={Number(page)} />
     </div>
   );
 };

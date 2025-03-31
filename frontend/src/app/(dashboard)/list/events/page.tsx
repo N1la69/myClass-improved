@@ -1,14 +1,19 @@
+"use client";
+
 import FormModal from "@/components/FormModal";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import { eventsData, role } from "@/lib/data";
+import { role } from "@/lib/data";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type Event = {
   id: number;
   title: string;
-  class: string;
+  description: string;
+  classId: number;
   date: string;
   startTime: string;
   endTime: string;
@@ -45,13 +50,45 @@ const columns = [
 ];
 
 const EventListPage = () => {
+  const searchParams = useSearchParams();
+  const page = searchParams.get("page") || "1";
+
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        setLoading(true);
+        let url = `http://localhost:5000/results?page=${page}&limit=10`;
+
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error("Failed to fetch Events");
+        }
+
+        const data = await response.json();
+
+        setEvents(data.data);
+        setTotalPages(data.pagination.totalPages);
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEvents();
+  }, [page]);
+
   const renderRow = (item: Event) => (
     <tr
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
     >
       <td className="flex items-center gap-4 p-4">{item.title}</td>
-      <td>{item.class}</td>
+      <td>{item.classId}</td>
       <td className="hidden md:table-cell">{item.date}</td>
       <td className="hidden md:table-cell">{item.startTime}</td>
       <td className="hidden md:table-cell">{item.endTime}</td>
@@ -88,10 +125,16 @@ const EventListPage = () => {
       </div>
 
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={eventsData} />
+      {loading ? (
+        <p className="text-center py-4">Loading...</p>
+      ) : error ? (
+        <p className="text-center text-red-500 py-4">{error}</p>
+      ) : (
+        <Table columns={columns} renderRow={renderRow} data={events} />
+      )}
 
       {/* PAGINATION */}
-      <Pagination />
+      <Pagination totalPages={totalPages} currentPage={Number(page)} />
     </div>
   );
 };

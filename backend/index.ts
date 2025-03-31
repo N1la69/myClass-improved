@@ -10,6 +10,8 @@ import SubjectRouter from "./routes/SubjectRoutes.ts";
 import ClassRouter from "./routes/ClassRoutes.ts";
 import ExamRouter from "./routes/ExamRoutes.ts";
 import AssignmentRouter from "./routes/AssignmentRoutes.ts";
+import ResultRouter from "./routes/ResultRoutes.ts";
+import EventRouter from "./routes/EventRoutes.ts";
 
 dotenv.config();
 
@@ -30,6 +32,8 @@ app.use("/subjects", SubjectRouter);
 app.use("/classes", ClassRouter);
 app.use("/exams", ExamRouter);
 app.use("/assignments", AssignmentRouter);
+app.use("/results", ResultRouter);
+app.use("/events", EventRouter);
 
 mongoose
   .connect(MONGODB_URI, {})
