@@ -62,7 +62,7 @@ const EventListPage = () => {
     const fetchEvents = async () => {
       try {
         setLoading(true);
-        let url = `http://localhost:5000/results?page=${page}&limit=10`;
+        let url = `http://localhost:5000/events?page=${page}&limit=10`;
 
         const response = await fetch(url);
         if (!response.ok) {
