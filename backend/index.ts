@@ -8,6 +8,8 @@ import StudentRouter from "./routes/StudentRoutes.ts";
 import ParentRouter from "./routes/ParentRoutes.ts";
 import SubjectRouter from "./routes/SubjectRoutes.ts";
 import ClassRouter from "./routes/ClassRoutes.ts";
+import ExamRouter from "./routes/ExamRoutes.ts";
+import AssignmentRouter from "./routes/AssignmentRoutes.ts";
 
 dotenv.config();
 
@@ -26,6 +28,8 @@ app.use("/students", StudentRouter);
 app.use("/parents", ParentRouter);
 app.use("/subjects", SubjectRouter);
 app.use("/classes", ClassRouter);
+app.use("/exams", ExamRouter);
+app.use("/assignments", AssignmentRouter);
 
 mongoose
   .connect(MONGODB_URI, {})

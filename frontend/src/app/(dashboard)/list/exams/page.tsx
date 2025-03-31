@@ -1,16 +1,21 @@
+"use client";
+
 import FormModal from "@/components/FormModal";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import { examsData, role } from "@/lib/data";
+import { role } from "@/lib/data";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 type Exam = {
   id: number;
-  subject: string;
-  class: string;
-  teacher: string;
-  date: string;
+  title: string;
+  startTime: string;
+  endTime: string;
+  lessonId: number;
+  results: string[];
 };
 
 const columns = [
@@ -39,15 +44,45 @@ const columns = [
 ];
 
 const ExamListPage = () => {
+  const searchParams = useSearchParams();
+  const page = searchParams.get("page") || "1";
+
+  const [exams, setExams] = useState<Exam[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+
+  useEffect(() => {
+    const fetchExams = async () => {
+      try {
+        setLoading(true);
+        let url = `http://localhost:5000/exams?page=${page}&limit=10`;
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch Exams");
+
+        const data = await response.json();
+
+        setExams(data.data);
+        setTotalPages(data.pagination.totalPages);
+      } catch (error: any) {
+        setError(error.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchExams();
+  }, [page]);
+
   const renderRow = (item: Exam) => (
     <tr
       key={item.id}
       className="border-b border-gray-200 even:bg-slate-50 text-sm hover:bg-lamaPurpleLight"
     >
-      <td className="flex items-center gap-4 p-4">{item.subject}</td>
-      <td>{item.class}</td>
-      <td className="hidden md:table-cell">{item.teacher}</td>
-      <td className="hidden md:table-cell">{item.date}</td>
+      <td className="flex items-center gap-4 p-4">{item.lessonId}</td>
+      <td>{item.title}</td>
+      <td className="hidden md:table-cell">{item.startTime}</td>
+      <td className="hidden md:table-cell">{item.endTime}</td>
       <td>
         <div className="flex items-center gap-2">
           {role === "admin" ||
@@ -83,10 +118,16 @@ const ExamListPage = () => {
       </div>
 
       {/* LIST */}
-      <Table columns={columns} renderRow={renderRow} data={examsData} />
+      {loading ? (
+        <p className="text-center py-4">Loading...</p>
+      ) : error ? (
+        <p className="text-center text-red-500 py-4">{error}</p>
+      ) : (
+        <Table columns={columns} renderRow={renderRow} data={exams} />
+      )}
 
       {/* PAGINATION */}
-      <Pagination />
+      <Pagination totalPages={totalPages} currentPage={Number(page)} />
     </div>
   );
 };
