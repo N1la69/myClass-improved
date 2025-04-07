@@ -14,6 +14,7 @@ import ResultRouter from "./routes/ResultRoutes.ts";
 import EventRouter from "./routes/EventRoutes.ts";
 import AnnouncementRouter from "./routes/AnnouncementRoutes.ts";
 import LessonRouter from "./routes/LessonRoutes.ts";
+import UserRouter from "./routes/UserRoutes.ts";
 
 dotenv.config();
 
@@ -38,6 +39,8 @@ app.use("/results", ResultRouter);
 app.use("/events", EventRouter);
 app.use("/announcements", AnnouncementRouter);
 app.use("/lessons", LessonRouter);
+
+app.use("/user", UserRouter);
 
 mongoose
   .connect(MONGODB_URI, {})
