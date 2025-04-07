@@ -33,3 +33,23 @@ export const getAllEvents = async (
     });
   }
 };
+
+export const getEventByDate = async (req: Request, res: Response) => {
+  try {
+    const { date } = req.query;
+
+    const targetDate = date ? new Date(date as string) : new Date();
+    const startOfDay = new Date(targetDate.setHours(0, 0, 0, 0));
+    const endOfDay = new Date(targetDate.setHours(23, 59, 59, 999));
+
+    const events = await Event.find({
+      startTime: { $gte: startOfDay, $lte: endOfDay },
+    }).lean();
+
+    res.status(200).json(events);
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ error: "Failed to fetch events. | Event Controller" });
+  }
+};
