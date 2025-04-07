@@ -13,6 +13,7 @@ import AssignmentRouter from "./routes/AssignmentRoutes.ts";
 import ResultRouter from "./routes/ResultRoutes.ts";
 import EventRouter from "./routes/EventRoutes.ts";
 import AnnouncementRouter from "./routes/AnnouncementRoutes.ts";
+import LessonRouter from "./routes/LessonRoutes.ts";
 
 dotenv.config();
 
@@ -36,6 +37,7 @@ app.use("/assignments", AssignmentRouter);
 app.use("/results", ResultRouter);
 app.use("/events", EventRouter);
 app.use("/announcements", AnnouncementRouter);
+app.use("/lessons", LessonRouter);
 
 mongoose
   .connect(MONGODB_URI, {})

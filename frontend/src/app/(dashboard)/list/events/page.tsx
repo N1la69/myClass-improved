@@ -4,7 +4,7 @@ import FormModal from "@/components/FormModal";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import { role } from "@/lib/data";
+import { useAuth, useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -50,6 +50,9 @@ const columns = [
 ];
 
 const EventListPage = () => {
+  const { isSignedIn } = useAuth();
+  const { user } = useUser();
+
   const searchParams = useSearchParams();
   const page = searchParams.get("page") || "1";
 
@@ -57,6 +60,9 @@ const EventListPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [totalPages, setTotalPages] = useState(1);
+
+  const userRole = user?.publicMetadata?.role || "user";
+  const role = isSignedIn ? userRole : "user";
 
   useEffect(() => {
     const fetchEvents = async () => {

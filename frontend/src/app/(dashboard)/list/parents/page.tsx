@@ -4,7 +4,7 @@ import FormModal from "@/components/FormModal";
 import Pagination from "@/components/Pagination";
 import Table from "@/components/Table";
 import TableSearch from "@/components/TableSearch";
-import { role } from "@/lib/data";
+import { useAuth, useUser } from "@clerk/nextjs";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -48,8 +48,14 @@ const columns = [
 ];
 
 const ParentListPage = () => {
+  const { isSignedIn } = useAuth();
+  const { user } = useUser();
+
   const searchParams = useSearchParams();
   const page = searchParams.get("page") || "1";
+
+  const userRole = user?.publicMetadata?.role || "user";
+  const role = isSignedIn ? userRole : "user";
 
   const [parents, setParents] = useState<Parent[]>([]);
   const [loading, setLoading] = useState(true);
@@ -117,7 +123,7 @@ const ParentListPage = () => {
             <button className="w-8 h-8 flex items-center justify-center rounded-full bg-lamaYellow">
               <Image src="/sort.png" alt="" width={14} height={14} />
             </button>
-            {role === "admin" && <FormModal table="teacher" type="create" />}
+            {role === "admin" && <FormModal table="parent" type="create" />}
           </div>
         </div>
       </div>

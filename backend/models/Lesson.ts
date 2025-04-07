@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Day } from "./enums";
+import { Day } from "./enums.ts";
 
 const LessonSchema = new mongoose.Schema({
   id: { type: Number, required: true, unique: true, auto: true },
