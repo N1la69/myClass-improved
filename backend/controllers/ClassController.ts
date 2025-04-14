@@ -62,3 +62,31 @@ export const getClassBySupervisorId = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getClassByStudentId = async (req: Request, res: Response) => {
+  try {
+    const { studentId } = req.query;
+
+    if (!studentId) {
+      return res.status(400).json({ message: "Student ID is required" });
+    }
+
+    const classes = await Class.find({ students: studentId }).populate(
+      "students"
+    );
+
+    if (!classes.length) {
+      return res
+        .status(404)
+        .json({ message: "No classes found for this student" });
+    }
+
+    res.status(200).json({ success: true, data: classes });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: "Server Error | Subject Controller",
+      error: (error as Error).message,
+    });
+  }
+};

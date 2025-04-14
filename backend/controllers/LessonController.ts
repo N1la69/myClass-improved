@@ -33,3 +33,26 @@ export const getAllLessons = async (
     });
   }
 };
+
+export const getLessonById = async (req: Request, res: Response) => {
+  const { type, id } = req.query;
+
+  try {
+    const filter =
+      type === "teacherId"
+        ? { teacherId: id }
+        : type === "classId"
+        ? { classId: Number(id) }
+        : null;
+
+    if (!filter) return res.status(400).json({ error: "Invalid type" });
+
+    const lessons = await Lesson.find(filter).select("name startTime endTime");
+    res.json(lessons);
+  } catch (error: any) {
+    console.error("Error fetching lessons:", error);
+    res
+      .status(500)
+      .json({ error: "Failed to fetch lessons | Lesson Controller" });
+  }
+};
