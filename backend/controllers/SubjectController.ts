@@ -107,3 +107,24 @@ export const updateSubject = async (req: Request, res: Response) => {
       .json({ success: false, message: "Server error while updating subject" });
   }
 };
+
+export const deleteSubjectById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: "Subject ID is required" });
+    }
+
+    const deletedSubject = await Subject.findByIdAndDelete(id);
+
+    if (!deletedSubject) {
+      return res.status(404).json({ message: "Subject not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Subject deleted" });
+  } catch (error) {
+    console.error("Error deleting subject:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};

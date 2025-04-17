@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
 import { Class } from "../models/Class.ts";
+import { z } from "zod";
+import { classSchema } from "../formValidationSchemas.ts";
 
 export const getAllClasses = async (
   req: Request,
@@ -86,6 +88,75 @@ export const getClassByStudentId = async (req: Request, res: Response) => {
     res.status(500).json({
       success: false,
       message: "Server Error | Subject Controller",
+      error: (error as Error).message,
+    });
+  }
+};
+
+export const createClass = async (req: Request, res: Response) => {
+  try {
+    const parsedData = classSchema.parse(req.body);
+
+    const newClass = {
+      id: Math.floor(Math.random() * 100000),
+      ...parsedData,
+    };
+
+    res.status(201).json({
+      message: "Class created successfully",
+      data: newClass,
+    });
+  } catch (error: any) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({
+        message: "Validation failed",
+        errors: error.errors,
+      });
+    }
+
+    // Handle any other unexpected errors
+    res.status(500).json({
+      message: "Internal Server Error",
+    });
+  }
+};
+
+export const updateClass = async (req: Request, res: Response) => {
+  try {
+    const parsed = classSchema.safeParse(req.body);
+    if (!parsed.success) {
+      return res
+        .status(400)
+        .json({ success: false, message: parsed.error.errors });
+    }
+
+    const { id, name, supervisorId } = parsed.data;
+    if (!id) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Class ID is required" });
+    }
+
+    const updatedClass = await Class.findByIdAndUpdate(
+      id,
+      {
+        name,
+        supervisorId,
+      },
+      { new: true }
+    );
+
+    if (!updatedClass) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Class not found" });
+    }
+
+    res.status(200).json({ success: true, data: updatedClass });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: "Server Error | Class Controller",
       error: (error as Error).message,
     });
   }
