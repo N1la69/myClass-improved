@@ -161,3 +161,22 @@ export const updateClass = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const deleteClassById = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!id) {
+      return res.status(400).json({ message: "Subject ID is required" });
+    }
+
+    const deletedClass = await Class.findByIdAndDelete(id);
+    if (!deletedClass) {
+      return res.status(404).json({ message: "Class not found" });
+    }
+
+    res.status(200).json({ success: true, message: "Class deleted" });
+  } catch (error: any) {
+    console.error("Error deleting class:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
